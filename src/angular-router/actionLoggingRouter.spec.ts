@@ -6,13 +6,33 @@ import {
 } from "@angular/router";
 import "@jest/globals";
 
-jest.mock("@angular/router", () => ({
-  UrlTree: class UrlTree {},
-  UrlSegmentGroup: class UrlSegmentGroup {},
-  NavigationExtras: {},
-  UrlCreationOptions: {},
-  IsActiveMatchOptions: {},
-}));
+jest.mock("@angular/router", () => {
+  class UrlTree {
+    commands?: string[];
+    path?: string;
+
+    constructor(init?: { commands?: string[]; path?: string }) {
+      Object.assign(this, init);
+    }
+  }
+
+  class UrlSegmentGroup {}
+
+  return {
+    UrlTree,
+    UrlSegmentGroup,
+    NavigationExtras: {},
+    UrlCreationOptions: {},
+    IsActiveMatchOptions: {},
+  };
+});
+
+const makeUrlTree = (init?: { commands?: string[]; path?: string }): UrlTree => {
+  const { UrlTree: UrlTreeClass } = jest.requireMock("@angular/router") as {
+    UrlTree: new (init?: { commands?: string[]; path?: string }) => UrlTree;
+  };
+  return new UrlTreeClass(init);
+};
 
 const action = jest.fn();
 const mockedAction = action as jest.MockedFunction<typeof action>;
@@ -51,8 +71,8 @@ describe("ActionLoggingRouter", () => {
   });
 
   it("should return concatenated url", () => {
-    const tree = { commands: ["first", "second"] } as MockedTreeWithCommands;
-    expect(router.serializeUrl(tree as unknown as UrlTree)).toEqual("first/second");
+    const tree = makeUrlTree({ commands: ["first", "second"] });
+    expect(router.serializeUrl(tree)).toEqual("first/second");
   });
 
   it("should return activePath as url", () => {
@@ -72,73 +92,57 @@ describe("ActionLoggingRouter", () => {
 
   describe("isActive", () => {
     it("should be active when exact and routes match", () => {
-      expect(
-        router.isActive({ commands: ["path", "nested"] } as unknown as UrlTree, true),
-      ).toBe(true);
+      const tree = makeUrlTree({ commands: ["path", "nested"] });
+      expect(router.isActive(tree, true)).toBe(true);
     });
 
     it("should be active when exact and routes match with options", () => {
+      const tree = makeUrlTree({ commands: ["path", "nested"] });
       expect(
-        router.isActive(
-          { commands: ["path", "nested"] } as unknown as UrlTree,
-          {
-            paths: "exact",
-            queryParams: "exact",
-            fragment: "ignored",
-            matrixParams: "ignored",
-          },
-        ),
+        router.isActive(tree, {
+          paths: "exact",
+          queryParams: "exact",
+          fragment: "ignored",
+          matrixParams: "ignored",
+        }),
       ).toBe(true);
     });
 
     it("should be active when not exact and routes match", () => {
-      expect(
-        router.isActive({ commands: ["path", "nested"] } as unknown as UrlTree, false),
-      ).toBe(true);
+      const tree = makeUrlTree({ commands: ["path", "nested"] });
+      expect(router.isActive(tree, false)).toBe(true);
     });
 
     it("should not be active when exact and routes do not match", () => {
-      expect(
-        router.isActive({ commands: ["path", "not"] } as unknown as UrlTree, true),
-      ).toBe(false);
+      const tree = makeUrlTree({ commands: ["path", "not"] });
+      expect(router.isActive(tree, true)).toBe(false);
     });
 
     it("should not be active when not exact and routes do not match", () => {
-      expect(
-        router.isActive({ commands: ["path", "not"] } as unknown as UrlTree, false),
-      ).toBe(false);
+      const tree = makeUrlTree({ commands: ["path", "not"] });
+      expect(router.isActive(tree, false)).toBe(false);
     });
 
     it("should be active when not exact and routes match partly", () => {
-      expect(
-        router.isActive(
-          { commands: ["path", "nested", "deep"] } as unknown as UrlTree,
-          false,
-        ),
-      ).toBe(true);
+      const tree = makeUrlTree({ commands: ["path", "nested", "deep"] });
+      expect(router.isActive(tree, false)).toBe(true);
     });
 
     it("should be active when not exact and routes match partly with options", () => {
+      const tree = makeUrlTree({ commands: ["path", "nested", "deep"] });
       expect(
-        router.isActive(
-          { commands: ["path", "nested", "deep"] } as unknown as UrlTree,
-          {
-            paths: "subset",
-            queryParams: "exact",
-            fragment: "ignored",
-            matrixParams: "ignored",
-          },
-        ),
+        router.isActive(tree, {
+          paths: "subset",
+          queryParams: "exact",
+          fragment: "ignored",
+          matrixParams: "ignored",
+        }),
       ).toBe(true);
     });
 
     it("should not be active when exact and routes match partly", () => {
-      expect(
-        router.isActive(
-          { commands: ["path", "nested", "deep"] } as unknown as UrlTree,
-          true,
-        ),
-      ).toBe(false);
+      const tree = makeUrlTree({ commands: ["path", "nested", "deep"] });
+      expect(router.isActive(tree, true)).toBe(false);
     });
   });
 
@@ -150,7 +154,7 @@ describe("ActionLoggingRouter", () => {
   });
 
   it("should call action on navigateByUrl", () => {
-    const url = { path: "a/b/c" } as unknown as UrlTree;
+    const url = makeUrlTree({ path: "a/b/c" });
     const extras = { option: true } as NavigationExtras;
 
     return expect(router.navigateByUrl(url, extras)).resolves.toBe(true);
