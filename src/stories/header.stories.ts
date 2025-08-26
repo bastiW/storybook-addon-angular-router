@@ -10,20 +10,30 @@ const meta: Meta<HeaderComponent> = {
   parameters: {
     layout: 'fullscreen',
   },
-  args: {
-
-  },
+  argTypes: {
+    exact: {
+      name: 'exact',
+      description:'exact match options of the routerLinkActive directive',
+      control: {type :'boolean'}
+    }
+  }
 };
 
 export default meta;
 type Story = StoryObj<HeaderComponent>;
 
-export const WithActive: Story = {
-  args: {
+export const WithoutActive: Story = {};
 
-  },
+export const WithActive: Story = {
   parameters: {
     angularRouter: {active: '/location/1'}
+  }
+};
+
+
+export const WithActivePartialMatch: Story = {
+  parameters: {
+    angularRouter: {active: '/location'}
   }
 };
 
