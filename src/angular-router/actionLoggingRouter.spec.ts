@@ -1,12 +1,12 @@
 import {ActionLoggingRouter} from "./actionLoggingRouter";
 import {action} from "storybook/actions";
 import {
-  type NavigationExtras,
-  type UrlCreationOptions,
-  UrlTree,
+   NavigationExtras,
+   UrlCreationOptions,
+   UrlTree,
 } from "@angular/router";
 
-jest.mock('@storybook/addon-actions', () => ({
+jest.mock('storybook/actions', () => ({
     action: jest.fn()
 }));
 
@@ -16,7 +16,7 @@ describe('ActionLoggingRouter', () => {
     const actionCallback = jest.fn();
 
     beforeAll(() => {
-        (action as jest.Mock).mockReturnValue(actionCallback);
+        action.mockReturnValue(actionCallback);
     });
 
     beforeEach(() => {
@@ -59,14 +59,14 @@ describe('ActionLoggingRouter', () => {
     describe('isActive', () => {
         it('should be active when exact and routes match', () => {
             expect(router.isActive(
-                {commands: ['path', 'nested']},
+                {commands: ['path', 'nested']} as UrlTree,
                 true
             )).toBe(true);
         });
 
         it('should be active when exact and routes match with options', () => {
             expect(router.isActive(
-                {commands: ['path', 'nested']},
+                {commands: ['path', 'nested']} as UrlTree,
                 {paths: 'exact', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored'}
             )).toBe(true);
         });
@@ -74,42 +74,42 @@ describe('ActionLoggingRouter', () => {
 
         it('should be active when not exact and routes match', () => {
             expect(router.isActive(
-                {commands: ['path', 'nested']},
+                {commands: ['path', 'nested']} as UrlTree,
                 false
             )).toBe(true);
         });
 
         it('should not be active when exact and routes do not match', () => {
             expect(router.isActive(
-                {commands: ['path', 'not']},
+                {commands: ['path', 'not']} as UrlTree,
                 true
             )).toBe(false);
         });
 
         it('should not be active when not exact and routes do not match', () => {
             expect(router.isActive(
-                {commands: ['path', 'not']},
+                {commands: ['path', 'not']} as UrlTree,
                 false
             )).toBe(false);
         });
 
         it('should be active when not exact and routes match partly', () => {
             expect(router.isActive(
-                {commands: ['path', 'nested', 'deep']},
+                {commands: ['path', 'nested', 'deep']} as UrlTree,
                 false
             )).toBe(true);
         });
 
         it('should be active when not exact and routes match partly with options', () => {
             expect(router.isActive(
-                {commands: ['path', 'nested', 'deep']},
+                {commands: ['path', 'nested', 'deep']} as UrlTree,
                 {paths: 'subset', queryParams: 'exact', fragment: 'ignored', matrixParams: 'ignored'}
             )).toBe(true);
         });
 
         it('should not be active when exact and routes match partly', () => {
             expect(router.isActive(
-                {commands: ['path', 'nested', 'deep']},
+                {commands: ['path', 'nested', 'deep']} as UrlTree,
                 true
             )).toBe(false);
         });
@@ -117,7 +117,7 @@ describe('ActionLoggingRouter', () => {
 
     it('should call action on navigate', function () {
         const commands = ['first', 'second'];
-        const extras: NavigationExtras = {option: true} as NavigationExtras;
+        const extras = {option: true} as NavigationExtras;
 
         expect(router.navigate(commands, extras))
             .resolves.toBe(true);
@@ -127,8 +127,8 @@ describe('ActionLoggingRouter', () => {
     });
 
     it('should call action on navigateByUrl', function () {
-        const url = {path: 'a/b/c'} as unknown as UrlTree;
-        const extras: NavigationExtras = {option: true} as NavigationExtras;
+        const url = {path: 'a/b/c'} as UrlTree;
+        const extras = {option: true} as NavigationExtras;
 
         expect(router.navigateByUrl(url, extras))
             .resolves.toBe(true);

@@ -42,7 +42,6 @@ export class ActionLoggingRouter {
     }
 
     isActive(tree: UrlTree | string, matchOptions: boolean | IsActiveMatchOptions) {
-        console.log('isActive', tree, matchOptions)
         if (!this.activePath) {
             return false
         }
